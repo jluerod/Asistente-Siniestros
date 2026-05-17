@@ -1,20 +1,28 @@
 import ollama
+import json
+
+messages=[{'role': 'system', 'content': """Eres un clasificador de siniestros de hogar para compañías aseguradoras españolas.
+
+Cuando recibas la descripción de un siniestro debes responder ÚNICAMENTE con un JSON con este formato:
+{
+    "gremio": "el gremio que corresponde",
+    "garantia": "la garantía que corresponde"
+}
+
+Los gremios posibles son: Electricidad, Bricolaje, Pocería, Fontanería, Albañilería, Pintura, Cerrajería, Toldos, Mantenimiento, Carpintería, Loza Sanitaria, Persianas, Otros, Carpintería Metálica, Marmolista, Tejados, Carpintería de Aluminio, Desatascos, Parquet, Jardinería, Localización de Fugas, Limpiezas, Cerrajería y Carpintería metálica, Escayola, Piscinas, Aislamiento, Urgencias Fontanería, Urgencias Cerrajería, Urgencias Electricidad, Manitas, Bricomanitas, Mamparas, Moquetas.
+
+Las garantías posibles son: DAÑOS ELECTRICOS, BRICOPARTNER, DAÑOS AGUA, SERVICIO ASISTENCIA, LLUVIA, MANTENIMIENTO, ROBO, LOZAS-MARMOLES, PEDRISCO-NIEVE, VIENTO, AVERIA SIN DAÑOS (AGUA), BRICOLAJE, CRISTALES-ESPEJOS, ACTOS VANDALICOS, INCENDIO, DAÑOS ELÉCTRICOS, FENOMENOS METEOROLÓGICOS, RESPONSABILIDAD CIVIL, EXPLOSION, HUMO, ATASCOS, BRICO-MANITAS, LLUVIA VIENTO PEDRISCO NIEVE, INUNDACION, ESCAPES DE AGUA, entre otras.
+
+No añadas explicaciones ni texto adicional, responde solo con el JSON."""}]
+
+user_input = input()
+messages= messages + [{'role': 'user', 'content': user_input}]
+response_content = ""
+response = ollama.chat("llama3.1:8b",messages)
+response_content = response.message.content
+print(response_content, end='', flush=True)
 
 
-messages=[{'role': 'system', 'content': 'Eres un asistente médico inteligente y empático. Tu objetivo es ayudar al usuario a entender mejor su situación de salud y preparar su consulta médica. Cuando el usuario describe síntomas: - Haz preguntas de seguimiento para entender bien la situación: duración, intensidad, localización, factores que lo empeoran o mejoran, medicación actual, enfermedades previas. - Basándote en los síntomas, menciona las causas más comunes y probables de forma informativa. - Da recomendaciones prácticas: si algo requiere atención urgente, si puede esperar, qué tipo de especialista sería más adecuado, qué puede hacer el usuario para aliviar los síntomas mientras tanto. - Al final genera un informe estructurado con los síntomas, posibles causas y preguntas clave para llevar al médicoResponde siempre en español, con un tono cercano y claro. Evita tecnicismos innecesarios pero no simplifiques en exceso la información médica.'}]
-        
-while True:
-    user_input = input()
-    if user_input.lower() == 'exit':
-        break
-    response_content = ""
-    for chunk in ollama.chat("llama3.1:8b", messages= messages + [{'role': 'user', 'content': user_input}], stream=True):
-        if chunk.message:
-            response_chunk = chunk.message.content
-            print(response_chunk, end='', flush=True)
-            response_content += response_chunk
-    messages += [
-        {'role': 'user', 'content': user_input},
-        {'role': 'assistant', 'content': response_content},
-    ]
-    print('\n')
+print('\n')
+json_response = json.loads(response_content)
+print(json_response)
