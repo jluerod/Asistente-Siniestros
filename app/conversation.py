@@ -1,6 +1,6 @@
 import ollama
 import json
-
+from rag import buscar_similares
 messages=[{'role': 'system', 'content': """Eres un clasificador de siniestros de hogar para compañías aseguradoras españolas.
 
 Cuando recibas la descripción de un siniestro debes responder ÚNICAMENTE con un JSON con este formato:
@@ -16,7 +16,15 @@ Las garantías posibles son: DAÑOS ELECTRICOS, BRICOPARTNER, DAÑOS AGUA, SERVI
 No añadas explicaciones ni texto adicional, responde solo con el JSON."""}]
 
 user_input = input()
-messages= messages + [{'role': 'user', 'content': user_input}]
+busqueda = buscar_similares(user_input)
+contexto = "\nAquí tienes 2 casos similares para ayudar a clasificar el siniestro:\n"
+rango = 1
+for i in range(len(busqueda)):
+    contexto+= f"Caso {rango}: Descripción: {busqueda[i]['descripcion']} → Gremio: {busqueda[i]['gremio']}, Garantía: {busqueda[i]['garantia']}\n"
+    rango += 1
+contexto += "\nAhora clasifica este siniestro:\n"
+print(contexto)
+messages= messages + [{'role': 'user', 'content': contexto+ user_input}]
 response_content = ""
 response = ollama.chat("llama3.1:8b",messages)
 response_content = response.message.content
