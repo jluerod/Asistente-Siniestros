@@ -48,13 +48,17 @@ def login_user(user: CreateUserRequest, db: Session = Depends(get_db)):
 @app.post("/clasificar")
 def clasificar(request: ClasificarRequest, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     resultado, _ = clasificar_siniestro(request.descripcion, request.usar_rag)
-    nuevo = Siniestro(
-        descripcion=request.descripcion,
-        gremio_predicho=resultado['gremio'],
-        garantia_predicha=resultado['garantia']
-    )
-    db.add(nuevo)
-    db.commit()
-
     return resultado
+@app.post("/validar")
+def validar(request: ValidarRequest, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
+    siniestro = Siniestro(
+        descripcion=request.descripcion,
+        gremio_real=request.gremio_correcto,
+        garantia_real=request.garantia_correcta,
+        gremio_predicho=request.gremio_predicho,
+        garantia_predicha=request.garantia_predicha
+    )
+    db.add(siniestro)
+    db.commit()
+    return {"mensaje": "Corrección guardada"}
 

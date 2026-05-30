@@ -19,5 +19,17 @@ class ClasificarRequest(BaseModel):
     @field_validator('descripcion')
     def descripcion_maximo(cls, v):
         if len(v) > 150:
-            raise ValueError('La descripción debe tener como maximo 150 caracteres')
+            raise ValueError('La descripción debe tener como maximo 100 caracteres')
+        return v
+class ValidarRequest(BaseModel):
+    descripcion: str
+    gremio_correcto: str
+    garantia_correcta: str
+    gremio_predicho: str
+    garantia_predicha: str
+
+    @field_validator('descripcion')
+    def descripcion_maximo(cls, v):
+        if len(v) > 150:
+            raise ValueError('La descripción debe tener como maximo 100 caracteres')
         return v
