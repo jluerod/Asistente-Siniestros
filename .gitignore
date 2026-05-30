@@ -5,3 +5,4 @@ __pycache__/
 models/
 *.xls
 data/
+commands.txt

@@ -1,5 +1,8 @@
 import ollama
 import json
+import re
+'''from rag import buscar_similares'''
+
 from app.rag import buscar_similares
 messages=[{'role': 'system', 'content': """Eres un clasificador de siniestros de hogar para compañías aseguradoras españolas.
 
@@ -17,21 +20,28 @@ No añadas explicaciones ni texto adicional, responde solo con el JSON."""}]
 
 
 
-def clasificar_siniestro(input):
-    busqueda = buscar_similares(input)
-    contexto = "\nAquí tienes 2 casos similares para ayudar a clasificar el siniestro:\n"
-    rango = 1
-    for i in range(len(busqueda)):
-        contexto+= f"Caso {rango}: Descripción: {busqueda[i]['descripcion']} → Gremio: {busqueda[i]['gremio']}, Garantía: {busqueda[i]['garantia']}\n"
-        rango += 1
-    contexto += "\nAhora clasifica este siniestro:\n"
+def clasificar_siniestro(input, usar_rag=True):
+    contexto = ""
+    if usar_rag:
+        busqueda = buscar_similares(input)
+        contexto = "\nAquí tienes 2 casos similares para ayudar a clasificar el siniestro:\n"
+        rango = 1
+        for i in range(len(busqueda)):
+            contexto+= f"Caso {rango}: Descripción: {busqueda[i]['descripcion']} → Gremio: {busqueda[i]['gremio']}, Garantía: {busqueda[i]['garantia']}\n"
+            rango += 1
+        contexto += "\nAhora clasifica este siniestro:\n"
     mensaje= messages + [{'role': 'user', 'content': contexto + input}]
     response_content = ""
     response = ollama.chat("llama3.1:8b",mensaje)
     response_content = response.message.content
     '''print(response_content, end='', flush=True)'''
 
-
+    match = re.search(r'\{.*\}', response_content, re.DOTALL)
     
-    json_response = json.loads(response_content)
+    if match:
+        json_response = json.loads(match.group())
+    else:
+        return {"gremio": "No clasificado", "garantia": "No clasificado"}, True
+    if 'garantía' in json_response:
+        json_response['garantia'] = json_response.pop('garantía')
     return json_response, True
